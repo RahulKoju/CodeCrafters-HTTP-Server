@@ -7,7 +7,7 @@ const server = net.createServer((socket) => {
   socket.on("data",(data)=>{
     const req=data.toString();
     // Extract the request line (first line of the request)
-    const [requestLine, ...headers] = request.split('\r\n');
+    const [requestLine, ...headers] = req.split('\r\n');
     
     // Extract the method, path, and HTTP version from the request line
     const [method, path, httpVersion] = requestLine.split(' ');
