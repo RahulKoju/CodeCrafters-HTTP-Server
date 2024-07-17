@@ -13,8 +13,6 @@ const server = net.createServer((socket) => {
       const httpResponse="HTTP/1.1 404 NOT FOUND\r\n\r\n";
       socket.write(httpResponse);
     }
-  });
-  socket.on("close", () => {
     socket.end();
   });
 });
