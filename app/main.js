@@ -63,6 +63,7 @@ const server = net.createServer((socket) => {
             'NOT FOUND'
           ].join('\r\n');
           socket.write(response);
+          socket.end();
         }
         else{
           const response = [
@@ -74,6 +75,7 @@ const server = net.createServer((socket) => {
             fileContent
           ].join('\r\n');
           socket.write(response);
+          socket.end();
         }
       }))
       return;
