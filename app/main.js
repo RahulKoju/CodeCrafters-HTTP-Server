@@ -38,6 +38,18 @@ const server = net.createServer((socket) => {
       ].join('\r\n');
       socket.write(response);
     }
+    else if(path.includes("/user-agent")){
+      const userAgent= headers[1].split(': ')[1];
+      const response = [
+        'HTTP/1.1 200 OK',
+        'Content-Type: text/plain',
+        `Content-Length: ${userAgent.length}`,
+        'Connection: close',
+        '',
+        userAgent
+      ].join('\r\n');
+      socket.write(response);
+    }
     else {
       // Respond with 404 Not Found
       const response = [
