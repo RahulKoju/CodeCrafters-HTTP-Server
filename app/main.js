@@ -1,6 +1,6 @@
 const net = require("net");
-
-
+const fs = require("fs");
+const path = require('path');
 
 
 const server = net.createServer((socket) => {
@@ -49,6 +49,34 @@ const server = net.createServer((socket) => {
         userAgent
       ].join('\r\n');
       socket.write(response);
+    }
+    else if(path.includes("/files/")){
+      const filename=path.split("/")[2];
+      const directory=process.argv[3];
+      const filePath=path.join(directory,filename);
+      if(fs.readFile(filePath,(err,fileContent)=>{
+        if(err){
+          const response = [
+            'HTTP/1.1 404 NOT FOUND',
+            'Connection: close',
+            '',
+            'NOT FOUND'
+          ].join('\r\n');
+          socket.write(response);
+        }
+        else{
+          const response = [
+            'HTTP/1.1 200 OK',
+            'Content-Type: application/octet-stream',
+            `Content-Length: ${Buffer.byteLength(fileContent)}`,
+            'Connection: close',
+            '',
+            fileContent
+          ].join('\r\n');
+          socket.write(response);
+        }
+      }))
+      return;
     }
     else {
       // Respond with 404 Not Found
