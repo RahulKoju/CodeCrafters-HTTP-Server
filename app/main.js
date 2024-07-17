@@ -40,7 +40,7 @@ const server = net.createServer((socket) => {
       socket.end();
     } else if (urlPath === '/user-agent') {
       // Extract User-Agent header
-      const userAgent = headers[2].split(": ")[1];
+      const userAgent = headers[1].split(": ")[1];
       const response = [
         'HTTP/1.1 200 OK',
         'Content-Type: text/plain',
