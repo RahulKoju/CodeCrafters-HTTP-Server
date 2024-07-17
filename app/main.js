@@ -54,7 +54,7 @@ const server = net.createServer((socket) => {
       const filename=path.split("/")[2];
       const directory=process.argv[3];
       const filePath=path1.join(directory,filename);
-      if(fs.readFile(filePath,(err,fileContent)=>{
+      fs.readFile(filePath,(err,fileContent)=>{
         if(err){
           const response = [
             'HTTP/1.1 404 NOT FOUND',
@@ -63,7 +63,6 @@ const server = net.createServer((socket) => {
             'NOT FOUND'
           ].join('\r\n');
           socket.write(response);
-          socket.end();
         }
         else{
           const response = [
@@ -75,10 +74,8 @@ const server = net.createServer((socket) => {
             fileContent
           ].join('\r\n');
           socket.write(response);
-          socket.end();
         }
-      }))
-      return;
+      });
     }
     else {
       // Respond with 404 Not Found
