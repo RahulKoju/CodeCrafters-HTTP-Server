@@ -1,6 +1,6 @@
 const net = require("net");
 const fs = require("fs");
-const path = require('path');
+const path1 = require('path');
 
 
 const server = net.createServer((socket) => {
@@ -53,7 +53,7 @@ const server = net.createServer((socket) => {
     else if(path.includes("/files/")){
       const filename=path.split("/")[2];
       const directory=process.argv[3];
-      const filePath=path.join(directory,filename);
+      const filePath=path1.join(directory,filename);
       if(fs.readFile(filePath,(err,fileContent)=>{
         if(err){
           const response = [
