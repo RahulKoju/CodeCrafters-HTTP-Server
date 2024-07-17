@@ -13,7 +13,7 @@ const server = net.createServer((socket) => {
     const [method, path, httpVersion] = requestLine.split(' ');
 
     // Check the request path and respond
-    if (path === '/index.html') {
+    if (path === '/index.html' || path === '/') {
       // Respond with 200 OK
       const response = [
         'HTTP/1.1 200 OK',
