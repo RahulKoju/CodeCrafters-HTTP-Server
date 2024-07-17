@@ -51,12 +51,11 @@ const server = net.createServer((socket) => {
       ].join('\r\n');
       socket.write(response);
       socket.end();
-    } else if (urlPath.startsWith("/files/")) {
+    } else if (urlPath.startsWith("/files/") && method==="GET") {
       // Extract filename from path
       const filename = urlPath.split("/")[2];
       const directory = process.argv[3]; // Assuming directory path is passed as command-line argument
       const filePath = path.join(directory, filename);
-
       // Read file asynchronously
       fs.readFile(filePath, (err, fileContent) => {
         if (err) {
@@ -84,7 +83,37 @@ const server = net.createServer((socket) => {
         }
         socket.end(); // Ensure socket is closed after sending response
       });
-    } else {
+    } 
+    else if(urlPath.startsWith("/files/") && method==="POST"){
+      const directory=process.argv[3];
+      const filename=urlPath.split("/")[2];
+      const filePath=path.join(directory,filename);
+      const body=req[req.length-1];
+      fs.writeFile(filePath,body,(err)=>{
+        if(err){
+          const response=[
+            "HTTP/1.1 500 INTERNAL SERVER ERROR",
+            'Content-Type: text/html; charset=UTF-8',
+            'Content-Length: 21',
+            'Connection: close',
+            '',
+            'Internal Server Error'
+          ].join('\r\n');
+          socket.write(response);
+          socket.end();
+        }else{
+          const response = [
+            'HTTP/1.1 201 Created',
+            'Connection: close',
+            '',
+            ''
+          ].join('\r\n');
+          socket.write(response);
+          socket.end();
+        }
+      })
+    }
+    else {
       // Respond with 404 Not Found for other paths
       const response = [
         'HTTP/1.1 404 Not Found',
