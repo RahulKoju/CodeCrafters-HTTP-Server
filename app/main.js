@@ -1,19 +1,19 @@
 const net = require("net");
 const fs = require("fs");
-const path1 = require('path');
-
+const path = require('path');
 
 const server = net.createServer((socket) => {
-  socket.on("data",(data)=>{
-    const req=data.toString();
+  socket.on("data", (data) => {
+    const req = data.toString();
+
     // Extract the request line (first line of the request)
     const [requestLine, ...headers] = req.split('\r\n');
     
     // Extract the method, path, and HTTP version from the request line
-    const [method, path, httpVersion] = requestLine.split(' ');
+    const [method, urlPath, httpVersion] = requestLine.split(' ');
 
-    // Check the request path and respond
-    if (path === '/index.html' || path === '/') {
+    // Handle GET requests based on the path
+    if (urlPath === '/index.html' || urlPath === '/') {
       // Respond with 200 OK
       const response = [
         'HTTP/1.1 200 OK',
@@ -23,11 +23,11 @@ const server = net.createServer((socket) => {
         '',
         '<h1>Hello</h1>'
       ].join('\r\n');
-      
       socket.write(response);
-    }
-    else if(path.includes("/echo/")){
-      const content=path.split("/echo/")[1];
+      socket.end();
+    } else if (urlPath.includes("/echo/")) {
+      // Extract content to echo
+      const content = urlPath.split("/echo/")[1];
       const response = [
         'HTTP/1.1 200 OK',
         'Content-Type: text/plain',
@@ -37,9 +37,10 @@ const server = net.createServer((socket) => {
         content
       ].join('\r\n');
       socket.write(response);
-    }
-    else if(path.includes("/user-agent")){
-      const userAgent= headers[1].split(': ')[1];
+      socket.end();
+    } else if (urlPath === '/user-agent') {
+      // Extract User-Agent header
+      const userAgent = headers.find(header => header.startsWith('User-Agent'));
       const response = [
         'HTTP/1.1 200 OK',
         'Content-Type: text/plain',
@@ -49,36 +50,42 @@ const server = net.createServer((socket) => {
         userAgent
       ].join('\r\n');
       socket.write(response);
-    }
-    else if(path.includes("/files/")){
-      const filename=path.split("/")[2];
-      const directory=process.argv[3];
-      const filePath=path1.join(directory,filename);
-      fs.readFile(filePath,(err,fileContent)=>{
-        if(err){
+      socket.end();
+    } else if (urlPath.startsWith("/files/")) {
+      // Extract filename from path
+      const filename = urlPath.split("/")[2];
+      const directory = process.argv[3]; // Assuming directory path is passed as command-line argument
+      const filePath = path.join(directory, filename);
+
+      // Read file asynchronously
+      fs.readFile(filePath, (err, fileContent) => {
+        if (err) {
+          // File not found
           const response = [
-            'HTTP/1.1 404 NOT FOUND',
+            'HTTP/1.1 404 Not Found',
+            'Content-Type: text/html; charset=UTF-8',
+            'Content-Length: 9',
             'Connection: close',
             '',
-            'NOT FOUND'
+            'Not Found'
           ].join('\r\n');
           socket.write(response);
-        }
-        else{
+        } else {
+          // File found, respond with its contents
           const response = [
             'HTTP/1.1 200 OK',
             'Content-Type: application/octet-stream',
-            `Content-Length: ${Buffer.byteLength(fileContent)}`,
+            `Content-Length: ${fileContent.length}`,
             'Connection: close',
             '',
             fileContent
           ].join('\r\n');
           socket.write(response);
         }
+        socket.end(); // Ensure socket is closed after sending response
       });
-    }
-    else {
-      // Respond with 404 Not Found
+    } else {
+      // Respond with 404 Not Found for other paths
       const response = [
         'HTTP/1.1 404 Not Found',
         'Content-Type: text/html; charset=UTF-8',
@@ -87,14 +94,21 @@ const server = net.createServer((socket) => {
         '',
         'Not Found'
       ].join('\r\n');
-      
       socket.write(response);
+      socket.end();
     }
-    socket.end();
   });
+
   socket.on('close', () => {
-    socket.end();
+    console.log('Socket closed');
+  });
+
+  socket.on('error', (err) => {
+    console.error('Socket error:', err);
+    socket.destroy(); // Ensure socket is destroyed on error
   });
 });
 
-server.listen(4221, "localhost");
+server.listen(4221, "localhost", () => {
+  console.log('Server listening on port 4221');
+});
