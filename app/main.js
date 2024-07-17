@@ -88,7 +88,8 @@ const server = net.createServer((socket) => {
       const directory=process.argv[3];
       const filename=urlPath.split("/")[2];
       const filePath=path.join(directory,filename);
-      const body=req[req.length-1];
+      const reqq=req.split("\r\n");
+      const body=reqq[reqq.length-1];
       fs.writeFile(filePath,body,(err)=>{
         if(err){
           const response=[
