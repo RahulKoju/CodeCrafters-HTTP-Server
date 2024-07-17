@@ -25,7 +25,20 @@ const server = net.createServer((socket) => {
       ].join('\r\n');
       
       socket.write(response);
-    } else {
+    }
+    else if(path.includes("/echo/")){
+      const content=path.split("/echo/")[1];
+      const response = [
+        'HTTP/1.1 200 OK',
+        'Content-Type: text/plain',
+        `Content-Length: ${content.length}`,
+        'Connection: close',
+        '',
+        content
+      ].join('\r\n');
+      socket.write(response);
+    }
+    else {
       // Respond with 404 Not Found
       const response = [
         'HTTP/1.1 404 Not Found',
