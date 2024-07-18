@@ -1,7 +1,7 @@
 const net = require("net");
 const fs = require("fs");
 const path = require('path');
-
+const zlib = require('zlib');
 const server = net.createServer((socket) => {
   socket.on("data", (data) => {
     const req = data.toString();
@@ -11,6 +11,13 @@ const server = net.createServer((socket) => {
     
     // Extract the method, path, and HTTP version from the request line
     const [method, urlPath, httpVersion] = requestLine.split(' ');
+    const header={};
+    for(const line of headers){
+      const [key,value]=line.split(": ");
+      if(key && value){
+        header[key.toLocaleLowerCase()]=value;
+      }
+    }
 
     // Handle GET requests based on the path
     if (urlPath === '/index.html' || urlPath === '/') {
@@ -28,15 +35,24 @@ const server = net.createServer((socket) => {
     } else if (urlPath.includes("/echo/")) {
       // Extract content to echo
       const content = urlPath.split("/echo/")[1];
+      const acceptEncoding=header['accept-encoding'] || "";
       const response = [
         'HTTP/1.1 200 OK',
         'Content-Type: text/plain',
-        `Content-Length: ${content.length}`,
         'Connection: close',
-        '',
-        content
-      ].join('\r\n');
-      socket.write(response);
+      ]
+      let responseBody=content;
+      if(acceptEncoding.includes("gzip")){
+        const gzip = zlib.gzipSync(content);
+        response.push("Content-Encoding: gzip");
+        response.push(`Content-Length: ${gzip.length}`);
+        responseBody=gzip;
+      }else{
+        response.push(`Content-Length: ${content.length}`);
+      }
+      const responseHeaders = response.join('\r\n') + '\r\n\r\n';
+      socket.write(responseHeaders);
+      socket.write(responseBody);
       socket.end();
     } else if (urlPath === '/user-agent') {
       // Extract User-Agent header
